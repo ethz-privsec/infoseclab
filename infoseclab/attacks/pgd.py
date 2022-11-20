@@ -1,5 +1,5 @@
 import torch
-from utils import batched_func
+from infoseclab.utils import batched_func
 
 
 class PGD(object):
