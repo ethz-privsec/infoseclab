@@ -22,7 +22,7 @@ def _to_JPEG(im):
     Convert a torch tensor image to JPEG format, in memory.
     """
     # convert torch tensor to PIL Image
-    im = Image.fromarray(np.uint8(im.numpy().transpose(1, 2, 0) * 255))
+    im = Image.fromarray(np.uint8(im.cpu().numpy().transpose(1, 2, 0) * 255))
 
     # convert PIL Image to JPEG in memory
     with BytesIO() as f:
@@ -42,4 +42,5 @@ def images_to_JPEG(images):
     :param images: the images to convert as a torch tensor of dimension (N, 3, 224, 224)
     :return: the converted images as a torch tensor of dimension (N, 3, 224, 224)
     """
-    return torch.stack([_to_JPEG(im) for im in images])
+    with torch.no_grad():
+        return torch.stack([_to_JPEG(im) for im in images])
