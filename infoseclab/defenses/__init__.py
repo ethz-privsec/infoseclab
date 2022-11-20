@@ -1,3 +1,3 @@
 from .defense import ResNet
-from .quality_scorer import ImageQualityScorer
-from .defense_jpeg import ResNetJPEG
+from .defense_nima import ResNetNima
+from .defense_jpeg import ResNetNimaJPEG

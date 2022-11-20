@@ -1,20 +1,23 @@
 from io import BytesIO
 
-from infoseclab.defenses.defense import ResNet
+from infoseclab.defenses import ResNetNima
 from PIL import Image
 import numpy as np
 import torch
 
 
-class ResNetJPEG(ResNet):
+class ResNetNimaJPEG(ResNetNima):
     """
-    A defense that converts images to JPEG format before classifying them.
+    A defense that converts images to JPEG format before classifying them or scoring them.
     """
     def __init__(self, device):
         super().__init__(device)
 
     def get_logits(self, x):
-        return self.model(self.normalize(images_to_JPEG(x)))
+        return super().get_logits(images_to_JPEG(x))
+
+    def get_scores(self, x):
+        return super().get_scores(images_to_JPEG(x))
 
 
 def _to_JPEG(im):

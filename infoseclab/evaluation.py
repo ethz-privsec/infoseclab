@@ -1,5 +1,5 @@
 from infoseclab.data import ImageNet, EPSILON, npy_uint8_to_th
-from infoseclab.defenses import ResNet, ResNetJPEG, ImageQualityScorer
+from infoseclab.defenses import ResNet, ResNetNima, ResNetNimaJPEG
 from infoseclab.utils import batched_func
 import torch
 import numpy as np
@@ -107,19 +107,18 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
 
 def eval_nima_attack(path="results/x_adv_nima.npy"):
     print("=== Evaluating targeted PGD with Image Quality Assessment ===")
-    nima = ImageQualityScorer()
-    resnet = ResNet(device)
+    defense_nima = ResNetNima(device)
 
     try:
         x_adv = load_and_validate_images(path)
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
+    acc_clean, acc_adv, acc_target = eval_clf(defense_nima, x_adv)
 
     assert acc_clean > 0.99, "clean accuracy too low"
 
-    scores_adv = image_quality(nima, x_adv)
+    scores_adv = image_quality(defense_nima, x_adv)
     print(f"\tadv image quality: avg={scores_adv.mean():3f}, std={scores_adv.min():.3f}")
 
     if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
@@ -130,18 +129,20 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
 
 def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
     print("=== Evaluating targeted PGD on JPEG defense ===")
-    resnet_jpeg = ResNetJPEG(device)
+    defense_jpeg = ResNetNimaJPEG(device)
 
     try:
         x_adv = load_and_validate_images(path)
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(resnet_jpeg, x_adv)
+    acc_clean, acc_adv, acc_target = eval_clf(defense_jpeg, x_adv)
 
     assert acc_clean > 0.9, "clean accuracy too low"
 
-    if (acc_adv < 0.05) and (acc_target > 0.95):
+    scores_adv = image_quality(defense_jpeg, x_adv)
+
+    if (acc_adv < 0.05) and (acc_target > 0.95) and (scores_adv.min() > 6.5):
         print("SUCCESS")
     else:
         print("NOT THERE YET!")
