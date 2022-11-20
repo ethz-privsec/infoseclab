@@ -2,7 +2,7 @@ from infoseclab.data import  ImageNet, EPSILON, npy_uint8_to_th
 from infoseclab.defenses.defense import ResNet
 from infoseclab.defenses.defense_jpeg import ResNetJPEG
 from infoseclab.defenses.quality_scorer import ImageQualityScorer
-from utils import batched_func
+from infoseclab.utils import batched_func
 import torch
 import numpy as np
 
