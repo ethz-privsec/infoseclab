@@ -18,7 +18,7 @@ def accuracy(defense, images, labels=ImageNet.labels):
     :return: The accuracy of the defense on the images.
     """
     with torch.no_grad():
-        all_preds = batched_func(defense.classify, images)
+        all_preds = batched_func(defense.classify, images, verbose=False)
         acc = torch.mean(torch.eq(labels, all_preds).float())
     return acc
 
@@ -31,7 +31,7 @@ def image_quality(nima, images):
     :return: the image quality of the images
     """
     with torch.no_grad():
-        return batched_func(nima.get_scores, images)
+        return batched_func(nima.get_scores, images, verbose=False)
 
 
 def assert_advs_valid(x_adv):

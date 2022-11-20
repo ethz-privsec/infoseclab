@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 
-def batched_func(func, inputs, batch_size=20, device="cuda", **kwargs):
+def batched_func(func, inputs, batch_size=20, device="cuda", verbose=True, **kwargs):
     """
     Apply a function to a batch of inputs.
     :param func: the function to apply
@@ -25,7 +25,7 @@ def batched_func(func, inputs, batch_size=20, device="cuda", **kwargs):
     num_batches = int((n + batch_size - 1) / batch_size)
 
     outputs = []
-    for i in trange(num_batches):
+    for i in trange(num_batches, disable=~verbose):
         batch = [x[i * batch_size:(i + 1) * batch_size].to(device) for x in inputs]
         outputs.append(func(*batch, **kwargs).detach().cpu())
 
