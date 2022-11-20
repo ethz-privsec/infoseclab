@@ -22,6 +22,7 @@ def _to_JPEG(im):
     Convert a torch tensor image to JPEG format, in memory.
     """
     # convert torch tensor to PIL Image
+    device = im.device
     im = Image.fromarray(np.uint8(im.cpu().numpy().transpose(1, 2, 0) * 255))
 
     # convert PIL Image to JPEG in memory
@@ -33,7 +34,7 @@ def _to_JPEG(im):
 
     # convert PIL Image to torch tensor
     im = (np.asarray(im).astype(np.float32) / 255.0).transpose(2, 0, 1)
-    return torch.from_numpy(im)
+    return torch.from_numpy(im).to(device)
 
 
 def images_to_JPEG(images):
