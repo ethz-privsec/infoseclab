@@ -115,5 +115,5 @@ def display(image, image_orig=None, logits=None, class_names=ImageNet.class_name
         label += class_names[torch.argmax(logits[1])]
         confidence = torch.nn.Softmax(dim=-1)(logits[1])[torch.argmax(logits[1])]
         ax[1].set_title(f"{label}\n({confidence:.1%})")
-
+    fig.tight_layout(pad=5.0)
     plt.show()
