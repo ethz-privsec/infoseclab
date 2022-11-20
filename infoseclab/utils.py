@@ -41,10 +41,10 @@ def save_images(path, images):
     images_npy = th_to_npy_uint8(images)
 
     images_th = npy_uint8_to_th(images_npy)
-    if not torch.all_close(images, images_th):
+    if not torch.allclose(images, images_th):
         warnings.warn("Images are not the same after saving and loading.")
 
-    np.save(path, images)
+    np.save(path, images_npy)
 
 
 def img2plt(img):

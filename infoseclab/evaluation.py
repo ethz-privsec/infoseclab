@@ -74,8 +74,8 @@ def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
 
     try:
         x_adv = load_and_validate_images(path)
-    except FileNotFoundError():
-        print("no adversarial examples found")
+    except FileNotFoundError as e:
+        print("no adversarial examples found", e)
         return
     acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
 
@@ -92,8 +92,8 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
 
     try:
         x_adv = load_and_validate_images(path)
-    except FileNotFoundError():
-        print("no adversarial examples found")
+    except FileNotFoundError as e:
+        print("no adversarial examples found", e)
         return
     acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
 
@@ -111,8 +111,8 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
 
     try:
         x_adv = load_and_validate_images(path)
-    except FileNotFoundError():
-        print("no adversarial examples found")
+    except FileNotFoundError as e:
+        print("no adversarial examples found", e)
         return
     acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
 
@@ -132,8 +132,8 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
 
     try:
         x_adv = load_and_validate_images(path)
-    except FileNotFoundError():
-        print("no adversarial examples found")
+    except FileNotFoundError as e:
+        print("no adversarial examples found", e)
         return
     acc_clean, acc_adv, acc_target = eval_clf(resnet_jpeg, x_adv)
 
