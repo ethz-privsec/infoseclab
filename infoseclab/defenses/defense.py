@@ -33,9 +33,7 @@ class ResNet(Defense):
         self.model.to(device)
         # The classifier expects images normalized to 0 mean and 1 std.
         self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                          std=[0.229, 0.224, 0.225])
+                                              std=[0.229, 0.224, 0.225])
 
     def get_logits(self, x):
         return self.model(self.normalize(x))
-
-

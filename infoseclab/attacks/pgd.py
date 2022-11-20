@@ -75,4 +75,3 @@ class PGD(object):
         :return: the adversarial images
         """
         return batched_func(self.attack_batch, inputs=(images, labels), verbose=verbose)
-

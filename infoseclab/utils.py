@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 
-def batched_func(func, inputs, batch_size=20, device="cuda", verbose=True, **kwargs):
+def batched_func(func, inputs, batch_size=20, device="cuda", disable_tqdm=False, **kwargs):
     """
     Apply a function to a batch of inputs.
     :param func: the function to apply
     :param inputs: a tuple of inputs to the function
     :param batch_size: the batch size
     :param device: the device that inputs should be moved to
+    :param disable_tqdm: whether to disable the progress bar
     :param kwargs: additional keyword arguments to pass to the function
     :return: the outputs of the function over all inputs
     """
@@ -25,7 +26,7 @@ def batched_func(func, inputs, batch_size=20, device="cuda", verbose=True, **kwa
     num_batches = int((n + batch_size - 1) / batch_size)
 
     outputs = []
-    for i in trange(num_batches, disable=~verbose):
+    for i in trange(num_batches, disable=disable_tqdm):
         batch = [x[i * batch_size:(i + 1) * batch_size].to(device) for x in inputs]
         outputs.append(func(*batch, **kwargs).detach().cpu())
 
@@ -73,7 +74,7 @@ def display(image, image_orig=None, logits=None, class_names=ImageNet.class_name
     :param image: the adversarial example
     :param image_orig: the clean image
     :param logits: the logits of the input images of dimension (1, 1000) or (2, 1000)
-    :param labels: the label names
+    :param class_names: the label names
     """
     image = img2plt(image)
     if image_orig is not None:

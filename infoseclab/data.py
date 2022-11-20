@@ -39,4 +39,3 @@ class ImageNet:
 
     # attack targets
     targets = torch.from_numpy(np.load("infoseclab/data/targets.npy"))
-
