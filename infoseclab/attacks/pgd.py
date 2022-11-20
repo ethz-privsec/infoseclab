@@ -66,7 +66,7 @@ class PGD(object):
 
         return x_adv.detach()
 
-    def attack_all(self, images, labels, verbose=False):
+    def attack_all(self, images, labels, device, verbose=False):
         """
         Attack all images in the dataset.
         :param images: the images to attack
@@ -74,4 +74,4 @@ class PGD(object):
         :param verbose: whether to print the progress of the attack
         :return: the adversarial images
         """
-        return batched_func(self.attack_batch, inputs=(images, labels), verbose=verbose)
+        return batched_func(self.attack_batch, inputs=(images, labels), device=device, verbose=verbose)

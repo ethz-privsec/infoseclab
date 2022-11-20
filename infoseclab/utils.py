@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 
-def batched_func(func, inputs, batch_size=20, device="cuda", disable_tqdm=False, **kwargs):
+def batched_func(func, inputs, device, batch_size=20, disable_tqdm=False, **kwargs):
     """
     Apply a function to a batch of inputs.
     :param func: the function to apply
