@@ -67,7 +67,7 @@ def img2plt(img):
     return img
 
 
-def display(image, logits=None, image_orig=None, class_names=ImageNet.class_names):
+def display(image, image_orig=None, logits=None, logits_orig=None, class_names=ImageNet.class_names):
     """
     Display an adversarial example and its predicted label.
     :param image: the adversarial example
@@ -76,8 +76,14 @@ def display(image, logits=None, image_orig=None, class_names=ImageNet.class_name
     :param labels: the label names
     """
     image = img2plt(image)
-    image_orig = img2plt(image_orig)
-    assert len(logits.shape) == 1
+    if image_orig is not None:
+        image_orig = img2plt(image_orig)
+
+    if logits is not None:
+        assert len(logits.shape) == 1
+    if logits_orig is not None:
+        assert image_orig is not None
+        assert len(logits_orig.shape) == 1
 
     cmap = None
     if len(image.shape) == 2:
@@ -90,7 +96,6 @@ def display(image, logits=None, image_orig=None, class_names=ImageNet.class_name
         fig, ax = plt.subplots(1, 3)
         ax[1].imshow(image_orig, cmap=cmap)
         ax[1].axis('off')
-        ax[1].set_title("original")
         diff = image - image_orig
         ax[2].imshow((diff - np.min(diff)) / (np.max(diff) - np.min(diff) + 1e-8))
         ax[2].axis('off')
@@ -98,8 +103,16 @@ def display(image, logits=None, image_orig=None, class_names=ImageNet.class_name
 
     ax[0].imshow(image, cmap=cmap)
     ax[0].axis('off')
+    label = "adv: "
     if logits is not None:
-        label = class_names[torch.argmax(logits)]
+        label += class_names[torch.argmax(logits)]
         confidence = torch.nn.Softmax(dim=-1)(logits)[torch.argmax(logits)]
-        ax[0].set_title(f"{label} ({confidence:.1%})")
+        ax[0].set_title(f"{label}\n({confidence:.1%})")
+
+    label = "clean: "
+    if logits_orig is not None:
+        label += class_names[torch.argmax(logits_orig)]
+        confidence = torch.nn.Softmax(dim=-1)(logits_orig)[torch.argmax(logits_orig)]
+        ax[1].set_title(f"{label}\n({confidence:.1%})")
+
     plt.show()
