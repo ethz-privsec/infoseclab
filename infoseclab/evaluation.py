@@ -69,12 +69,12 @@ def eval_clf(clf, x_adv):
     return acc_clean, acc_adv, acc_target
 
 
-def eval_targeted_pgd():
+def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
     print("=== Evaluating targeted PGD ===")
     resnet = ResNet(device)
 
     try:
-        x_adv = load_and_validate_images("results/x_adv_targeted.npy")
+        x_adv = load_and_validate_images(path)
     except FileNotFoundError():
         print("no adversarial examples found")
         return
@@ -87,13 +87,13 @@ def eval_targeted_pgd():
     print("NOT THERE YET!")
 
 
-def eval_nima_attack():
+def eval_nima_attack(path="results/x_adv_nima.npy"):
     print("=== Evaluating targeted PGD with Image Quality Assessment ===")
     nima = ImageQualityScorer()
     resnet = ResNet(device)
 
     try:
-        x_adv = load_and_validate_images("results/x_adv_nima.npy")
+        x_adv = load_and_validate_images(path)
     except FileNotFoundError():
         print("no adversarial examples found")
         return
@@ -109,12 +109,12 @@ def eval_nima_attack():
     print("NOT THERE YET!")
 
 
-def eval_jpeg_attack():
+def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
     print("=== Evaluating targeted PGD on JPEG defense ===")
     resnet_jpeg = ResNetJPEG(device)
 
     try:
-        x_adv = load_and_validate_images("results/x_adv_jpeg.npy")
+        x_adv = load_and_validate_images(path)
     except FileNotFoundError():
         print("no adversarial examples found")
         return
