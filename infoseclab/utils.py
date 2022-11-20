@@ -67,12 +67,12 @@ def img2plt(img):
     return img
 
 
-def display(image, image_orig=None, logits=None, logits_orig=None, class_names=ImageNet.class_names):
+def display(image, image_orig=None, logits=None, class_names=ImageNet.class_names):
     """
     Display an adversarial example and its predicted label.
     :param image: the adversarial example
-    :param logits: the adversarial example's logits
     :param image_orig: the clean image
+    :param logits: the logits of the input images of dimension (1, 1000) or (2, 1000)
     :param labels: the label names
     """
     image = img2plt(image)
@@ -80,10 +80,11 @@ def display(image, image_orig=None, logits=None, logits_orig=None, class_names=I
         image_orig = img2plt(image_orig)
 
     if logits is not None:
-        assert len(logits.shape) == 1
-    if logits_orig is not None:
-        assert image_orig is not None
-        assert len(logits_orig.shape) == 1
+        assert len(logits.shape) == 2
+        if image_orig is None:
+            assert logits.shape[0] == 1
+        else:
+            assert logits.shape[0] == 2
 
     cmap = None
     if len(image.shape) == 2:
@@ -105,14 +106,14 @@ def display(image, image_orig=None, logits=None, logits_orig=None, class_names=I
     ax[0].axis('off')
     label = "adv: "
     if logits is not None:
-        label += class_names[torch.argmax(logits)]
-        confidence = torch.nn.Softmax(dim=-1)(logits)[torch.argmax(logits)]
+        label += class_names[torch.argmax(logits[0])]
+        confidence = torch.nn.Softmax(dim=-1)(logits[0])[torch.argmax(logits[0])]
         ax[0].set_title(f"{label}\n({confidence:.1%})")
 
     label = "clean: "
-    if logits_orig is not None:
-        label += class_names[torch.argmax(logits_orig)]
-        confidence = torch.nn.Softmax(dim=-1)(logits_orig)[torch.argmax(logits_orig)]
+    if logits is not None and image_orig is not None:
+        label += class_names[torch.argmax(logits[1])]
+        confidence = torch.nn.Softmax(dim=-1)(logits[1])[torch.argmax(logits[1])]
         ax[1].set_title(f"{label}\n({confidence:.1%})")
 
     plt.show()
