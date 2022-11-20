@@ -118,6 +118,9 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
 
     assert acc_clean > 0.99, "clean accuracy too low"
 
+    scores_clean = image_quality(defense_nima, ImageNet.clean_images)
+    print(f"\tclean image quality: avg={scores_clean.mean():3f}, std={scores_clean.min():.3f}")
+
     scores_adv = image_quality(defense_nima, x_adv)
     print(f"\tadv image quality: avg={scores_adv.mean():3f}, std={scores_adv.min():.3f}")
 
