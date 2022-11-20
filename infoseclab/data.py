@@ -30,13 +30,13 @@ class ImageNet:
     """
 
     # get the labels corresponding to the 1000 ImageNet classes
-    with open("data/imagenet-simple-labels.json") as f:
+    with open("infoseclab/data/imagenet-simple-labels.json") as f:
         class_names = json.load(f)
 
     # load the images and labels
-    clean_images = npy_uint8_to_th(np.load("data/images.npy"))
-    labels = torch.from_numpy(np.load("data/labels.npy"))
+    clean_images = npy_uint8_to_th(np.load("infoseclab/data/images.npy"))
+    labels = torch.from_numpy(np.load("infoseclab/data/labels.npy"))
 
     # attack targets
-    targets = torch.from_numpy(np.load("data/targets.npy"))
+    targets = torch.from_numpy(np.load("infoseclab/data/targets.npy"))
 
