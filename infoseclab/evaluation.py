@@ -68,6 +68,23 @@ def eval_clf(clf, x_adv):
 
     return acc_clean, acc_adv, acc_target
 
+def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
+    print("=== Evaluating untargeted PGD ===")
+    resnet = ResNet(device)
+
+    try:
+        x_adv = load_and_validate_images(path)
+    except FileNotFoundError():
+        print("no adversarial examples found")
+        return
+    acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
+
+    assert acc_clean > 0.99, "clean accuracy too low"
+
+    if acc_adv < 0.01:
+        print("SUCCESS")
+    print("NOT THERE YET!")
+
 
 def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
     print("=== Evaluating targeted PGD ===")
@@ -132,6 +149,7 @@ def eval_random_preproc_attack():
 
 
 def main():
+    eval_untargeted_pgd()
     eval_targeted_pgd()
     eval_nima_attack()
     eval_jpeg_attack()
