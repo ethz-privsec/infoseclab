@@ -122,7 +122,7 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
     assert acc_clean > 0.99, "clean accuracy too low"
 
     scores_adv = image_quality(nima, x_adv)
-    print(f"\tadv image quality: {scores_adv.mean()}, {scores_adv.min()}%")
+    print(f"\tadv image quality: avg={scores_adv.mean():3f}, std={scores_adv.min():.3f}")
 
     if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
         print("SUCCESS")
