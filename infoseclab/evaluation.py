@@ -58,13 +58,13 @@ def load_and_validate_images(path):
 
 def eval_clf(clf, x_adv):
     acc_clean = accuracy(clf, ImageNet.clean_images)
-    print(f"\n\tclean accuracy: {100 * acc_clean}%")
+    print(f"\tclean accuracy: {100 * acc_clean}%")
 
     acc_adv = accuracy(clf, x_adv)
-    print(f"\n\tadv accuracy: {100 * acc_adv}%")
+    print(f"\tadv accuracy: {100 * acc_adv}%")
 
     acc_target = accuracy(clf, x_adv, ImageNet.targets)
-    print(f"\n\tadv target accuracy: {100 * acc_target}%")
+    print(f"\tadv target accuracy: {100 * acc_target}%")
 
     return acc_clean, acc_adv, acc_target
 
@@ -122,7 +122,7 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
     assert acc_clean > 0.99, "clean accuracy too low"
 
     scores_adv = image_quality(nima, x_adv)
-    print(f"\n\tadv image quality: {scores_adv.mean()}, {scores_adv.min()}%")
+    print(f"\tadv image quality: {scores_adv.mean()}, {scores_adv.min()}%")
 
     if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
         print("SUCCESS")
