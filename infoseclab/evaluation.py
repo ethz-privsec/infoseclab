@@ -119,10 +119,10 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
     assert acc_clean > 0.99, "clean accuracy too low"
 
     scores_clean = image_quality(defense_nima, ImageNet.clean_images)
-    print(f"\tclean image quality: avg={scores_clean.mean():3f}, std={scores_clean.min():.3f}")
+    print(f"\tclean image quality: avg={scores_clean.mean()}, min={scores_clean.min()}")
 
     scores_adv = image_quality(defense_nima, x_adv)
-    print(f"\tadv image quality: avg={scores_adv.mean():3f}, std={scores_adv.min():.3f}")
+    print(f"\tadv image quality: avg={scores_adv.mean()}, min={scores_adv.min()}")
 
     if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
         print("SUCCESS")
@@ -144,6 +144,7 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
     assert acc_clean > 0.9, "clean accuracy too low"
 
     scores_adv = image_quality(defense_jpeg, x_adv)
+    print(f"\tadv image quality: avg={scores_adv.mean()}, min={scores_adv.min()}")
 
     if (acc_adv < 0.05) and (acc_target > 0.95) and (scores_adv.min() > 6.5):
         print("SUCCESS")
