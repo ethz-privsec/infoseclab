@@ -58,15 +58,16 @@ def load_and_validate_images(path):
 
 def eval_clf(clf, x_adv):
     acc_clean = accuracy(clf, ImageNet.clean_images)
-    print(f"\nclean accuracy: {100 * acc_clean}%")
+    print(f"\n\tclean accuracy: {100 * acc_clean}%")
 
     acc_adv = accuracy(clf, x_adv)
-    print(f"\nadv accuracy: {100 * acc_adv}%")
+    print(f"\n\tadv accuracy: {100 * acc_adv}%")
 
     acc_target = accuracy(clf, x_adv, ImageNet.targets)
-    print(f"\nadv target accuracy: {100 * acc_target}%")
+    print(f"\n\tadv target accuracy: {100 * acc_target}%")
 
     return acc_clean, acc_adv, acc_target
+
 
 def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
     print("=== Evaluating untargeted PGD ===")
@@ -83,7 +84,8 @@ def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
 
     if acc_adv < 0.01:
         print("SUCCESS")
-    print("NOT THERE YET!")
+    else:
+        print("NOT THERE YET!")
 
 
 def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
@@ -101,7 +103,8 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
 
     if (acc_adv < 0.01) and (acc_target > 0.99):
         print("SUCCESS")
-    print("NOT THERE YET!")
+    else:
+        print("NOT THERE YET!")
 
 
 def eval_nima_attack(path="results/x_adv_nima.npy"):
@@ -119,11 +122,12 @@ def eval_nima_attack(path="results/x_adv_nima.npy"):
     assert acc_clean > 0.99, "clean accuracy too low"
 
     scores_adv = image_quality(nima, x_adv)
-    print(f"\nadv image quality: {scores_adv.mean()}, {scores_adv.min()}%")
+    print(f"\n\tadv image quality: {scores_adv.mean()}, {scores_adv.min()}%")
 
     if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
         print("SUCCESS")
-    print("NOT THERE YET!")
+    else:
+        print("NOT THERE YET!")
 
 
 def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
@@ -141,7 +145,8 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
 
     if (acc_adv < 0.05) and (acc_target > 0.95):
         print("SUCCESS")
-    print("NOT THERE YET!")
+    else:
+        print("NOT THERE YET!")
 
 
 def eval_random_preproc_attack():
