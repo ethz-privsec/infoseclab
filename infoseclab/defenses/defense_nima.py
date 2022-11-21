@@ -16,7 +16,7 @@ class ResNetNima(ResNet):
         super().__init__(device)
 
     def get_scores(self, x):
-        scores = self.nima.model(self.normalize(x))
+        scores = self.nima.model(self.normalize_nima(x))
         buckets = torch.arange(1, 11).to(x.device)
         mu = (buckets * scores).sum(dim=1)
         return mu

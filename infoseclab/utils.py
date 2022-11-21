@@ -12,8 +12,8 @@ def batched_func(func, inputs, device, batch_size=20, disable_tqdm=False, **kwar
     Apply a function to a batch of inputs.
     :param func: the function to apply
     :param inputs: a tuple of inputs to the function
-    :param batch_size: the batch size
     :param device: the device that inputs should be moved to
+    :param batch_size: the batch size
     :param disable_tqdm: whether to disable the progress bar
     :param kwargs: additional keyword arguments to pass to the function
     :return: the outputs of the function over all inputs

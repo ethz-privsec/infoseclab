@@ -71,6 +71,7 @@ class PGD(object):
         Attack all images in the dataset.
         :param images: the images to attack
         :param labels: the clean labels
+        :param device: the device to run the attack on
         :param verbose: whether to print the progress of the attack
         :return: the adversarial images
         """
