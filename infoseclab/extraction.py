@@ -42,7 +42,7 @@ class LanguageModel(RNN):
 
     def get_loss(self, seq):
         seq = torch.tensor([LMData.char_to_ix[ch] for ch in seq], device=self.device)
-        output, _ = self.rnn(seq[:-1], None)
+        output, _ = self.forward(seq[:-1], None)
         loss = self.loss_fn(output, seq[1:])
         return loss
 
