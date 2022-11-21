@@ -41,6 +41,7 @@ class LanguageModel(RNN):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def get_loss(self, seq):
+        seq = torch.tensor([LMData.char_to_ix[ch] for ch in seq], device=self.device)
         output, _ = self.rnn(seq[:-1], None)
         loss = self.loss_fn(output, seq[1:])
         return loss
