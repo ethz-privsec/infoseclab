@@ -7,23 +7,33 @@ PREFIX = "Florian's password is "
 
 
 class Vocab:
+    """
+    The vocabulary of our language model.
+    """
 
+    # The language model emits text character by character. The vocabulary is the set of all possible characters.
     chars = ['\n', ' ', '!', '"', '&', "'", '(', ')', '*', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8',
              '9', ':', ';', '?', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
              'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', ']', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
              'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '¢', '£', '¨', '©',
              'ª', '®', '°', '±', '´', '¶', '»', '¼', '½', 'Â', 'Ã', 'â', 'Ÿ', '€', '™']
     size = len(chars)
+
+    # utilities to convert between characters and "tokens" (indices into the vocabulary)
     char_to_ix = {ch: i for i, ch in enumerate(chars)}
     ix_to_char = {i: ch for i, ch in enumerate(chars)}
 
 
 class RNN(nn.Module):
+    """
+    A simple recurrent neural network (RNN) language model.
+    """
     def __init__(self, input_size, output_size, hidden_size, num_layers):
         super(RNN, self).__init__()
         self.embedding = nn.Embedding(input_size, input_size)
         self.rnn = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers)
         self.decoder = nn.Linear(hidden_size, output_size)
+        self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, input_seq, hidden_state):
         embedding = self.embedding(torch.unsqueeze(input_seq, dim=-1))
@@ -32,20 +42,20 @@ class RNN(nn.Module):
         return output.squeeze(1), (hidden_state[0].detach(), hidden_state[1].detach())
 
 
-class LanguageModel(RNN):
-    def __init__(self, ckpt_path="infoseclab/data/secret_model.pth", device="cuda"):
-        super().__init__(Vocab.size, Vocab.size, 512, 3)
-        self.load_state_dict(torch.load(ckpt_path, map_location=device))
-        self.to(device)
-        self.eval()
-        self.device = device
-        self.loss_fn = nn.CrossEntropyLoss()
+def load_lm(ckpt_path="infoseclab/data/secret_model.pth", device="cuda"):
+    rnn = RNN(Vocab.size, Vocab.size, 512, 3)
+    rnn.load_state_dict(torch.load(ckpt_path, map_location=device))
+    rnn.to(device)
+    rnn.eval()
+    rnn.device = device
+    return rnn
 
-    def get_loss(self, seq):
-        seq = torch.tensor([Vocab.char_to_ix[ch] for ch in seq], device=self.device)
-        output, _ = self.forward(seq[:-1], None)
-        loss = self.loss_fn(output, seq[1:])
-        return loss
+
+def get_loss(lm, seq):
+    seq = torch.tensor([Vocab.char_to_ix[ch] for ch in seq], device=lm.device)
+    output, _ = lm.forward(seq[:-1], None)
+    loss = lm.loss_fn(output, seq[1:])
+    return loss
 
 
 def generate(lm, prompt, length=50):
