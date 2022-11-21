@@ -37,6 +37,7 @@ class LanguageModel(RNN):
         self.load_state_dict(torch.load(ckpt_path, map_location=device))
         self.to(device)
         self.eval()
+        self.device = device
 
     def generate(self, prompt, length=50):
         generated_text = ""
