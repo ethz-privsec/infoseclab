@@ -20,3 +20,14 @@ class ResNetNima(ResNet):
         buckets = torch.arange(1, 11).to(x.device)
         mu = (buckets * scores).sum(dim=1)
         return mu
+
+
+def image_quality(nima, images):
+    """
+    Compute the image quality of a set of images.
+    :param nima: the NIMA model to use
+    :param images: the images to evaluate of shape (N, 3, 224, 224), in the range [0, 255].
+    :return: the image quality of the images
+    """
+    with torch.no_grad():
+        return batched_func(nima.get_scores, images, nima.device, disable_tqdm=True)

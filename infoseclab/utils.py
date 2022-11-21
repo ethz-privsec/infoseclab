@@ -65,7 +65,7 @@ def img2plt(img):
         if img.shape[-1] == 1:
             img = img[:, :]
 
-    return img
+    return img.astype(np.uint8)
 
 
 def display(image, image_orig=None, logits=None, class_names=ImageNet.class_names):

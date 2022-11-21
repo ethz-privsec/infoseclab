@@ -1,35 +1,41 @@
 from infoseclab.data import ImageNet, EPSILON, npy_uint8_to_th
-from infoseclab.defenses import ResNet, ResNetNima, ResNetNimaJPEG
+from infoseclab.defenses import ResNet, ResNetDetector, ResNetJPEG
 from infoseclab.utils import batched_func
 import torch
 import numpy as np
-
-device = "cuda"
 
 
 def accuracy(defense, images, labels=ImageNet.labels):
     """
     Compute the accuracy of a defense on a set of images.
     :param defense: The defense to evaluate.
-    :param images: The images to evaluate on, of shape (N, 3, 224, 224).
+    :param images: The images to evaluate on, of shape (N, 3, 224, 224), in the range [0, 255].
     :param labels: The labels to evaluate on.
     :return: The accuracy of the defense on the images.
     """
     with torch.no_grad():
-        all_preds = batched_func(defense.classify, images, device, disable_tqdm=True)
+        all_preds = batched_func(defense.classify, images, defense.device, disable_tqdm=True)
         acc = torch.mean(torch.eq(labels, all_preds).float())
     return acc
 
 
-def image_quality(nima, images):
+def detector_accuracy(defense_det, clean_images, adv_images):
     """
-    Compute the image quality of a set of images.
-    :param nima: the NIMA model to use
-    :param images: the images to evaluate of shape (N, 3, 224, 224)
-    :return: the image quality of the images
+    :param defense_det: the detector
+    :param clean_images: the clean ImageNet images, of shape (N, 3, 224, 224), in the range [0, 255].
+    :param adv_images: the adversarial images, of shape (N, 3, 224, 224), in the range [0, 255].
+    :return: the accuracy of the detector on the clean and adversarial images
     """
     with torch.no_grad():
-        return batched_func(nima.get_scores, images, device, disable_tqdm=True)
+        clean_preds = batched_func(defense_det.detect, clean_images, defense_det.device, disable_tqdm=True)
+        adv_preds = batched_func(defense_det.detect, adv_images, defense_det.device, disable_tqdm=True)
+        acc_clean = torch.mean((clean_preds == 0).float())
+        acc_adv = torch.mean((adv_preds == 0).float())
+
+    print(f"\tclean detector accuracy: {100 * acc_clean}%")
+    print(f"\tadv detector accuracy: {100 * acc_adv}%")
+
+    return acc_clean, acc_adv
 
 
 def assert_advs_valid(x_adv):
@@ -37,17 +43,22 @@ def assert_advs_valid(x_adv):
     Assert that the adversarial images are valid.
     That is, the l_inf distance between the adversarial images and the clean
     images is less than or equal to our epsilon budget, and the images are
-    in the range [0, 1].
+    in the range [0, 255].
     :param x_adv: the adversarial examples
     :return: True if the adversarial examples are valid
     """
     linf = torch.max(torch.abs(x_adv - ImageNet.clean_images))
-    assert (torch.min(x_adv) >= 0.0) and (torch.max(x_adv) <= 1.0), "invalid pixel value"
+    assert (torch.min(x_adv) >= 0.0) and (torch.max(x_adv) <= 255.0), "invalid pixel value"
     assert linf <= 1.01*EPSILON, "linf distance too large: {}".format(linf)
     return True
 
 
 def load_and_validate_images(path):
+    """
+    Load and validate the adversarial images.
+    :param path: the path to the adversarial images, saved as a uint8 numpy array
+    :return: True if the adversarial images are valid
+    """
     x_adv = np.load(path)
     x_adv = npy_uint8_to_th(x_adv)
     assert_advs_valid(x_adv)
@@ -67,7 +78,7 @@ def eval_clf(clf, x_adv):
     return acc_clean, acc_adv, acc_target
 
 
-def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
+def eval_untargeted_pgd(path="results/x_adv_untargeted.npy", device="cuda"):
     print("=== Evaluating untargeted PGD ===")
     resnet = ResNet(device)
 
@@ -86,7 +97,7 @@ def eval_untargeted_pgd(path="results/x_adv_untargeted.npy"):
         print("NOT THERE YET!")
 
 
-def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
+def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
     print("=== Evaluating targeted PGD ===")
     resnet = ResNet(device)
 
@@ -105,34 +116,31 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy"):
         print("NOT THERE YET!")
 
 
-def eval_nima_attack(path="results/x_adv_nima.npy"):
-    print("=== Evaluating targeted PGD with Image Quality Assessment ===")
-    defense_nima = ResNetNima(device)
+def eval_detector(path="results/x_adv_detect.npy", device="cuda", detector_path="data/resnet18_detector.pth"):
+    print("=== Evaluating targeted PGD with Detection ===")
+    defense_det = ResNetDetector(device, detector_path)
 
     try:
         x_adv = load_and_validate_images(path)
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(defense_nima, x_adv)
+    acc_clean, acc_adv, acc_target = eval_clf(defense_det, x_adv)
 
     assert acc_clean > 0.99, "clean accuracy too low"
 
-    scores_clean = image_quality(defense_nima, ImageNet.clean_images)
-    print(f"\tclean image quality: avg={scores_clean.mean()}, min={scores_clean.min()}")
+    acc_det_clean, acc_det_adv = detector_accuracy(defense_det, ImageNet.clean_images, x_adv)
+    assert acc_det_clean > 0.9, "clean detector accuracy too low"
 
-    scores_adv = image_quality(defense_nima, x_adv)
-    print(f"\tadv image quality: avg={scores_adv.mean()}, min={scores_adv.min()}")
-
-    if (acc_adv < 0.01) and (acc_target > 0.99) and (scores_adv.min() > 6.9):
+    if (acc_adv < 0.01) and (acc_target > 0.99) and (acc_det_adv > 0.95):
         print("SUCCESS")
     else:
         print("NOT THERE YET!")
 
 
-def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
+def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
     print("=== Evaluating targeted PGD on JPEG defense ===")
-    defense_jpeg = ResNetNimaJPEG(device)
+    defense_jpeg = ResNetJPEG(device)
 
     try:
         x_adv = load_and_validate_images(path)
@@ -143,25 +151,18 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy"):
 
     assert acc_clean > 0.9, "clean accuracy too low"
 
-    scores_adv = image_quality(defense_jpeg, x_adv)
-    print(f"\tadv image quality: avg={scores_adv.mean()}, min={scores_adv.min()}")
-
-    if (acc_adv < 0.05) and (acc_target > 0.95) and (scores_adv.min() > 6.5):
+    if (acc_adv < 0.05) and (acc_target > 0.95):
         print("SUCCESS")
     else:
         print("NOT THERE YET!")
 
 
-def eval_random_preproc_attack():
-    pass
-
-
 def main():
-    eval_untargeted_pgd()
-    eval_targeted_pgd()
-    eval_nima_attack()
-    eval_jpeg_attack()
-    eval_random_preproc_attack()
+    device = "cuda"
+    eval_untargeted_pgd(device=device)
+    eval_targeted_pgd(device=device)
+    eval_detector(device=device)
+    eval_jpeg_attack(device=device)
 
 
 if __name__ == "__main__":

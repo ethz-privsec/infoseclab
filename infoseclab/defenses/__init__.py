@@ -1,3 +1,3 @@
 from .defense import ResNet
-from .defense_nima import ResNetNima
-from .defense_jpeg import ResNetNimaJPEG
+from .defense_detector import ResNetDetector
+from .defense_jpeg import ResNetJPEG

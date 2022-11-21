@@ -23,11 +23,11 @@ class PGD(object):
         Project x_adv onto the epsilon ball around x_orig.
         :param x_adv: the adversarial images
         :param x_orig: the clean images
-        :return: the adversarial images projected onto the epsilon ball
+        :return: the adversarial images projected onto the epsilon ball, in the range [0, 255]
         """
         perturb = x_adv - x_orig
         perturb = torch.clamp(perturb, -self.epsilon, self.epsilon)
-        return torch.clamp(x_orig + perturb, 0, 1)
+        return torch.clamp(x_orig + perturb, 0, 255)
 
     def attack_batch(self, x, y, verbose=False):
         """
@@ -66,13 +66,12 @@ class PGD(object):
 
         return x_adv.detach()
 
-    def attack_all(self, images, labels, device, verbose=False):
+    def attack_all(self, images, labels, verbose=False):
         """
         Attack all images in the dataset.
-        :param images: the images to attack
+        :param images: the images to attack, of size (N, 3, 224, 224) in the range [0, 255]
         :param labels: the clean labels
-        :param device: the device to run the attack on
         :param verbose: whether to print the progress of the attack
         :return: the adversarial images
         """
-        return batched_func(self.attack_batch, inputs=(images, labels), device=device, verbose=verbose)
+        return batched_func(self.attack_batch, inputs=(images, labels), device=self.clf.device, verbose=verbose)
