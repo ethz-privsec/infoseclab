@@ -34,7 +34,7 @@ class RNN(nn.Module):
 class LanguageModel(RNN):
     def __init__(self, ckpt_path, device):
         super().__init__(Data.vocab_size, Data.vocab_size, 512, 3)
-        self.load_state_dict(torch.load(ckpt_path), map_location=device)
+        self.load_state_dict(torch.load(ckpt_path, map_location=device))
         self.to(device)
         self.eval()
 
