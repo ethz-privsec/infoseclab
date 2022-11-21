@@ -116,7 +116,7 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
         print("NOT THERE YET!")
 
 
-def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/resnet18_detector.pth", device="cuda", ):
+def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda", ):
     print("=== Evaluating targeted PGD with Detection ===")
     defense_det = ResNetDetector(device, detector_path)
 
