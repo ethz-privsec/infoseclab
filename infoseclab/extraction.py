@@ -6,7 +6,7 @@ from torch.distributions import Categorical
 PREFIX = "Florian's password is "
 
 
-class Data:
+class LMData:
     chars = ['\n', ' ', '!', '"', '&', "'", '(', ')', '*', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8',
              '9', ':', ';', '?', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
              'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', ']', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
@@ -33,39 +33,46 @@ class RNN(nn.Module):
 
 class LanguageModel(RNN):
     def __init__(self, ckpt_path, device):
-        super().__init__(Data.vocab_size, Data.vocab_size, 512, 3)
+        super().__init__(LMData.vocab_size, LMData.vocab_size, 512, 3)
         self.load_state_dict(torch.load(ckpt_path, map_location=device))
         self.to(device)
         self.eval()
         self.device = device
+        self.loss_fn = nn.CrossEntropyLoss()
 
-    def generate(self, prompt, length=50):
-        generated_text = ""
-        hidden_state = None
+    def get_loss(self, seq):
+        output, _ = self.rnn(seq[:-1], None)
+        loss = self.loss_fn(output, seq[1:])
+        return loss
 
-        # tokenize the prompt
-        input_seq = [Data.char_to_ix[ch] for ch in prompt]
-        # tensor of dimension (N,) where N is the number of characters in the prompt
-        input_seq = torch.tensor(input_seq).to(self.device)
 
-        for i in range(length):
-            # forward pass through the model
-            # output is a tensor of dimension (N, vocab_size)
-            output, hidden_state = self.forward(input_seq, hidden_state)
+def generate(lm, prompt, length=50):
+    generated_text = ""
+    hidden_state = None
 
-            # get a distribution over the next character
-            # dist is of dimension (vocab_size,)
-            probas = F.softmax(output[-1], dim=0)
+    # tokenize the prompt
+    input_seq = [LMData.char_to_ix[ch] for ch in prompt]
+    # tensor of dimension (N,) where N is the number of characters in the prompt
+    input_seq = torch.tensor(input_seq).to(lm.device)
 
-            # sample a character according to the predicted distribution
-            dist = Categorical(probas)
-            index = dist.sample()
+    for i in range(length):
+        # forward pass through the model
+        # output is a tensor of dimension (N, vocab_size)
+        output, hidden_state = lm.forward(input_seq, hidden_state)
 
-            generated_text += Data.ix_to_char[index.item()]
+        # get a distribution over the next character
+        # dist is of dimension (vocab_size,)
+        probas = F.softmax(output[-1], dim=0)
 
-            # to continue the generation, we simply evaluate
-            # the model on the last predicted character,
-            # and the current hidden state
-            input_seq = torch.tensor([index.item()]).to(self.device)
+        # sample a character according to the predicted distribution
+        dist = Categorical(probas)
+        index = dist.sample()
 
-        return prompt + generated_text
+        generated_text += LMData.ix_to_char[index.item()]
+
+        # to continue the generation, we simply evaluate
+        # the model on the last predicted character,
+        # and the current hidden state
+        input_seq = torch.tensor([index.item()]).to(lm.device)
+
+    return prompt + generated_text
