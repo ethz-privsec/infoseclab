@@ -4,6 +4,18 @@ from infoseclab.utils import batched_func
 import torch
 import numpy as np
 
+class colors:
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    BLUE = '\033[34m'
+    RESET = '\033[0m'
+
+
+def print_colored(inp, succ):
+    color = colors.GREEN if succ else colors.RED
+    print(f"{color}{inp}{colors.RESET}")
+
 
 def accuracy(defense, images, labels=ImageNet.labels):
     """
@@ -33,9 +45,6 @@ def detector_accuracy(defense_det, clean_images, adv_images):
         fpr = torch.mean((clean_preds == 1).float())
         tpr = torch.mean((adv_preds == 1).float())
 
-    print(f"\tclean examples detected: {100 * fpr}%")
-    print(f"\tadv examples detected: {100 * tpr}%")
-
     return fpr, tpr
 
 
@@ -50,7 +59,7 @@ def assert_advs_valid(x_adv):
     """
     linf = torch.max(torch.abs(x_adv - ImageNet.clean_images))
     assert (torch.min(x_adv) >= 0.0) and (torch.max(x_adv) <= 255.0), "invalid pixel value"
-    assert linf <= 1.01*EPSILON, "linf distance too large: {}".format(linf)
+    assert linf <= 1.01*EPSILON, f"linf distance too large: {linf} (target: ≤{EPSILON})"
     return True
 
 
@@ -66,17 +75,27 @@ def load_and_validate_images(path):
     return x_adv
 
 
-def eval_clf(clf, x_adv):
+def eval_clf(clf, x_adv, min_acc=0.99, max_adv_acc=0.01, min_target_acc=0.99, targeted=True):
     acc_clean = accuracy(clf, ImageNet.clean_images)
-    print(f"\tclean accuracy: {100 * acc_clean}%")
+    success_acc = acc_clean >= min_acc
+    print_colored(f"\tclean accuracy: {100*acc_clean}%", success_acc)
+    assert success_acc, f"clean accuracy too low: {100*acc_clean}% (target: ≥{100*min_acc}%)"
 
     acc_adv = accuracy(clf, x_adv)
-    print(f"\tadv accuracy: {100 * acc_adv}%")
+    success_adv = acc_adv <= max_adv_acc
+    print_colored(f"\tadv accuracy: {100 * acc_adv}% (target: ≤ {100*max_adv_acc}%)", success_adv)
 
-    acc_target = accuracy(clf, x_adv, ImageNet.targets)
-    print(f"\tadv target accuracy: {100 * acc_target}%")
+    success = success_acc & success_adv
 
-    return acc_clean, acc_adv, acc_target
+    if targeted:
+        acc_target = accuracy(clf, x_adv, ImageNet.targets)
+        success_target = acc_target >= min_target_acc
+        print(f"\tadv target accuracy: {100*acc_target}% (target: ≥{100*min_target_acc}%)", success_target)
+        success &= success_target
+        return acc_clean, acc_adv, acc_target, success
+
+    else:
+        return acc_clean, acc_adv, success
 
 
 def eval_untargeted_pgd(path="results/x_adv_untargeted.npy", device="cuda"):
@@ -88,14 +107,12 @@ def eval_untargeted_pgd(path="results/x_adv_untargeted.npy", device="cuda"):
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
+    acc_clean, acc_adv, success = eval_clf(resnet, x_adv, targeted=False)
 
-    assert acc_clean > 0.99, "clean accuracy too low"
-
-    if acc_adv < 0.01:
-        print("SUCCESS")
+    if success:
+        print_colored("SUCCESS", success)
     else:
-        print("NOT THERE YET!")
+        print_colored("NOT THERE YET!", ~success)
 
 
 def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
@@ -107,17 +124,15 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(resnet, x_adv)
+    acc_clean, acc_adv, acc_target, success = eval_clf(resnet, x_adv, targeted=True)
 
-    assert acc_clean > 0.99, "clean accuracy too low"
-
-    if (acc_adv < 0.01) and (acc_target > 0.99):
-        print("SUCCESS")
+    if success:
+        print_colored("SUCCESS", success)
     else:
-        print("NOT THERE YET!")
+        print_colored("NOT THERE YET!", ~success)
 
 
-def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda", ):
+def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda"):
     print("=== Evaluating targeted PGD with Detection ===")
     defense_det = ResNetDetector(device, detector_path)
 
@@ -126,17 +141,25 @@ def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/dat
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(defense_det, x_adv)
-
-    assert acc_clean > 0.99, "clean accuracy too low"
+    acc_clean, acc_adv, acc_target, success = eval_clf(defense_det, x_adv, targeted=True)
 
     fpr, tpr = detector_accuracy(defense_det, ImageNet.clean_images, x_adv)
-    assert fpr < 0.05, "false-positive-rate is too high"
 
-    if (acc_adv < 0.01) and (acc_target > 0.99) and (tpr < 0.01):
-        print("SUCCESS")
+    min_fpr = 0.05
+    success_fpr = fpr <= min_fpr
+    assert success_fpr, f"false positive rate too high: {100*fpr}% (target: ≤{100*min_fpr}%)"
+    print_colored(f"\tclean examples detected: {100 * fpr}% (target: ≤{min_fpr}%)", success_fpr)
+
+    max_tpr = 0.01
+    success_tpr = tpr <= max_tpr
+    print_colored(f"\tadv examples detected: {100 * tpr}% (target: ≤{max_tpr}%)", success_tpr)
+
+    success &= success_fpr & success_tpr
+
+    if success:
+        print_colored("SUCCESS", success)
     else:
-        print("NOT THERE YET!")
+        print_colored("NOT THERE YET!", ~success)
 
 
 def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
@@ -148,14 +171,12 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
     except FileNotFoundError as e:
         print("no adversarial examples found", e)
         return
-    acc_clean, acc_adv, acc_target = eval_clf(defense_jpeg, x_adv)
+    acc_clean, acc_adv, acc_target, success = eval_clf(defense_jpeg, x_adv, min_acc=0.9, targeted=True)
 
-    assert acc_clean > 0.9, "clean accuracy too low"
-
-    if (acc_adv < 0.05) and (acc_target > 0.95):
-        print("SUCCESS")
+    if success:
+        print_colored("SUCCESS", success)
     else:
-        print("NOT THERE YET!")
+        print_colored("NOT THERE YET!", ~success)
 
 
 def main():
