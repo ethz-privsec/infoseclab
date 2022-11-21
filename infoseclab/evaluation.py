@@ -24,18 +24,19 @@ def detector_accuracy(defense_det, clean_images, adv_images):
     :param defense_det: the detector
     :param clean_images: the clean ImageNet images, of shape (N, 3, 224, 224), in the range [0, 255].
     :param adv_images: the adversarial images, of shape (N, 3, 224, 224), in the range [0, 255].
-    :return: the accuracy of the detector on the clean and adversarial images
+    :return: the false-positive-rate (fraction of clean images detected)
+    and true-positive-rate (fraction of adversarial images detected).
     """
     with torch.no_grad():
         clean_preds = batched_func(defense_det.detect, clean_images, defense_det.device, disable_tqdm=True)
         adv_preds = batched_func(defense_det.detect, adv_images, defense_det.device, disable_tqdm=True)
-        acc_clean = torch.mean((clean_preds == 0).float())
-        acc_adv = torch.mean((adv_preds == 0).float())
+        fpr = torch.mean((clean_preds == 1).float())
+        tpr = torch.mean((adv_preds == 1).float())
 
-    print(f"\tclean detector accuracy: {100 * acc_clean}%")
-    print(f"\tadv detector accuracy: {100 * acc_adv}%")
+    print(f"\tclean examples detected: {100 * fpr}%")
+    print(f"\tadv examples detected: {100 * tpr}%")
 
-    return acc_clean, acc_adv
+    return fpr, tpr
 
 
 def assert_advs_valid(x_adv):
@@ -129,10 +130,10 @@ def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/dat
 
     assert acc_clean > 0.99, "clean accuracy too low"
 
-    acc_det_clean, acc_det_adv = detector_accuracy(defense_det, ImageNet.clean_images, x_adv)
-    assert acc_det_clean > 0.9, "clean detector accuracy too low"
+    fpr, tpr = detector_accuracy(defense_det, ImageNet.clean_images, x_adv)
+    assert fpr < 0.05, "false-positive-rate is too high"
 
-    if (acc_adv < 0.01) and (acc_target > 0.99) and (acc_det_adv > 0.95):
+    if (acc_adv < 0.01) and (acc_target > 0.99) and (tpr > 0.95):
         print("SUCCESS")
     else:
         print("NOT THERE YET!")
