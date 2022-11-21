@@ -133,7 +133,7 @@ def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/dat
     fpr, tpr = detector_accuracy(defense_det, ImageNet.clean_images, x_adv)
     assert fpr < 0.05, "false-positive-rate is too high"
 
-    if (acc_adv < 0.01) and (acc_target > 0.99) and (tpr < 0.05):
+    if (acc_adv < 0.01) and (acc_target > 0.99) and (tpr < 0.01):
         print("SUCCESS")
     else:
         print("NOT THERE YET!")

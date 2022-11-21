@@ -6,13 +6,14 @@ from torch.distributions import Categorical
 PREFIX = "Florian's password is "
 
 
-class LMData:
+class Vocab:
+
     chars = ['\n', ' ', '!', '"', '&', "'", '(', ')', '*', ',', '-', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8',
              '9', ':', ';', '?', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
              'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', ']', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
              'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '¢', '£', '¨', '©',
              'ª', '®', '°', '±', '´', '¶', '»', '¼', '½', 'Â', 'Ã', 'â', 'Ÿ', '€', '™']
-    vocab_size = len(chars)
+    size = len(chars)
     char_to_ix = {ch: i for i, ch in enumerate(chars)}
     ix_to_char = {i: ch for i, ch in enumerate(chars)}
 
@@ -32,8 +33,8 @@ class RNN(nn.Module):
 
 
 class LanguageModel(RNN):
-    def __init__(self, ckpt_path, device):
-        super().__init__(LMData.vocab_size, LMData.vocab_size, 512, 3)
+    def __init__(self, ckpt_path="infoseclab/data/secret_model.pth", device="cuda"):
+        super().__init__(Vocab.size, Vocab.size, 512, 3)
         self.load_state_dict(torch.load(ckpt_path, map_location=device))
         self.to(device)
         self.eval()
@@ -41,7 +42,7 @@ class LanguageModel(RNN):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def get_loss(self, seq):
-        seq = torch.tensor([LMData.char_to_ix[ch] for ch in seq], device=self.device)
+        seq = torch.tensor([Vocab.char_to_ix[ch] for ch in seq], device=self.device)
         output, _ = self.forward(seq[:-1], None)
         loss = self.loss_fn(output, seq[1:])
         return loss
@@ -52,7 +53,7 @@ def generate(lm, prompt, length=50):
     hidden_state = None
 
     # tokenize the prompt
-    input_seq = [LMData.char_to_ix[ch] for ch in prompt]
+    input_seq = [Vocab.char_to_ix[ch] for ch in prompt]
     # tensor of dimension (N,) where N is the number of characters in the prompt
     input_seq = torch.tensor(input_seq).to(lm.device)
 
@@ -69,7 +70,7 @@ def generate(lm, prompt, length=50):
         dist = Categorical(probas)
         index = dist.sample()
 
-        generated_text += LMData.ix_to_char[index.item()]
+        generated_text += Vocab.ix_to_char[index.item()]
 
         # to continue the generation, we simply evaluate
         # the model on the last predicted character,

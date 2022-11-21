@@ -8,7 +8,7 @@ class ResNetDetector(ResNet):
     """
     A defense that also aims to detect adversarial examples.
     """
-    def __init__(self, device, detector_path):
+    def __init__(self, device, detector_path="infoseclab/data/detector.pth"):
         """
         :param device: the device to use for the defense
         :param detector_path: the path to the detector model

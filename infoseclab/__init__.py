@@ -1,2 +1,2 @@
 from .data import ImageNet, EPSILON
-from .extraction import LMData, PREFIX
+from .extraction import Vocab, PREFIX
