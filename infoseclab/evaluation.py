@@ -90,7 +90,7 @@ def eval_clf(clf, x_adv, min_acc=0.99, max_adv_acc=0.01, min_target_acc=0.99, ta
     if targeted:
         acc_target = accuracy(clf, x_adv, ImageNet.targets)
         success_target = acc_target >= min_target_acc
-        print(f"\tadv target accuracy: {100*acc_target}% (target: ≥{100*min_target_acc}%)", success_target)
+        print_colored(f"\tadv target accuracy: {100*acc_target}% (target: ≥{100*min_target_acc}%)", success_target)
         success &= success_target
         return acc_clean, acc_adv, acc_target, success
 
