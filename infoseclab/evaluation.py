@@ -4,7 +4,8 @@ from infoseclab.utils import batched_func
 import torch
 import numpy as np
 
-class colors:
+
+class COLORS:
     BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
@@ -13,8 +14,8 @@ class colors:
 
 
 def print_colored(inp, success):
-    color = colors.GREEN if success else colors.RED
-    print(f"{color}{inp}{colors.RESET}")
+    color = COLORS.GREEN if success else COLORS.RED
+    print(f"{color}{inp}{COLORS.RESET}")
 
 
 def accuracy(defense, images, labels=ImageNet.labels):
@@ -132,7 +133,7 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
         print_colored("NOT THERE YET!", success)
 
 
-def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda"):
+def eval_detector_attack(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda"):
     print("=== Evaluating targeted PGD with Detection ===")
     defense_det = ResNetDetector(device, detector_path)
 
@@ -177,15 +178,3 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
         print_colored("SUCCESS", success)
     else:
         print_colored("NOT THERE YET!", success)
-
-
-def main():
-    device = "cuda"
-    eval_untargeted_pgd(device=device)
-    eval_targeted_pgd(device=device)
-    eval_detector(device=device)
-    eval_jpeg_attack(device=device)
-
-
-if __name__ == "__main__":
-    main()

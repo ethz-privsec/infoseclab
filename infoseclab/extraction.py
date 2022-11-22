@@ -36,6 +36,12 @@ class RNN(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, input_seq, hidden_state):
+        """
+        Forward pass of the RNN.
+        :param input_seq: the tokenized input sequence of length seq_len
+        :param hidden_state: the model's current state
+        :return: the model's output, of dimension (seq_len, Vocab.size), and the new state
+        """
         embedding = self.embedding(torch.unsqueeze(input_seq, dim=-1))
         output, hidden_state = self.rnn(embedding, hidden_state)
         output = self.decoder(output)
@@ -43,6 +49,12 @@ class RNN(nn.Module):
 
 
 def load_lm(ckpt_path="infoseclab/data/secret_model.pth", device="cuda"):
+    """
+    Load the language model from the checkpoint.
+    :param ckpt_path: the pretrained model checkpoint
+    :param device: the device to load the model on
+    :return: the language model
+    """
     rnn = RNN(Vocab.size, Vocab.size, 512, 3)
     rnn.load_state_dict(torch.load(ckpt_path, map_location=device))
     rnn.to(device)
@@ -52,13 +64,33 @@ def load_lm(ckpt_path="infoseclab/data/secret_model.pth", device="cuda"):
 
 
 def get_loss(lm, seq):
+    """
+    Compute the loss of the language model on a string of characters.
+    :param lm: the language model
+    :param seq: the string of characters
+    :return: the loss
+    """
+
+    # tokenize the sequence
     seq = torch.tensor([Vocab.char_to_ix[ch] for ch in seq], device=lm.device)
+
+    # feed the n-1 first characters to the model.
+    # the model will output a distribution for each of the [2nd, 3rd, ..., n-th] characters
     output, _ = lm.forward(seq[:-1], None)
+
+    # apply the cross-entropy loss for each predicted character in the sequence and average the losses
     loss = lm.loss_fn(output, seq[1:])
     return loss
 
 
 def generate(lm, prompt, length=50):
+    """
+    Generate a sequence of characters by sampling from the language model.
+    :param lm: the language model
+    :param prompt: the prompt to start the generation from
+    :param length: the number of characters to generate
+    :return: the prompt concatenated with the generated sequence
+    """
     generated_text = ""
     hidden_state = None
 
@@ -73,18 +105,17 @@ def generate(lm, prompt, length=50):
         output, hidden_state = lm.forward(input_seq, hidden_state)
 
         # get a distribution over the next character
-        # dist is of dimension (vocab_size,)
+        # probas is of dimension (vocab_size,)
         probas = F.softmax(output[-1], dim=0)
 
         # sample a character according to the predicted distribution
         dist = Categorical(probas)
         index = dist.sample()
-
         generated_text += Vocab.ix_to_char[index.item()]
 
         # to continue the generation, we simply evaluate
         # the model on the last predicted character,
-        # and the current hidden state
+        # and the current state
         input_seq = torch.tensor([index.item()]).to(lm.device)
 
     return prompt + generated_text

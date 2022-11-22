@@ -27,11 +27,23 @@ class ResNetDetector(ResNet):
         self.det = det.to(device)
 
     def get_logits(self, x):
-        # get the penultimate layer features and pass them through the classifier head
+        """
+        Get the logits of the classifier.
+        First gets the penultimate layer features and passes them through the classifier head
+        :param x: the input batch of images of size (batch_size, 3, 224, 224) in the range [0, 255]
+        :return: the logits of the classifier of size (batch_size, 1000)
+        """
+
         return self.fc(super().get_logits(x))
 
     def get_detection_logits(self, x):
-        # get the penultimate layer features and pass them through the detector
+        """
+        Get the logits of the detector.
+        First gets the penultimate layer features and passes them through the detector
+        :param x: the input batch of images of size (batch_size, 3, 224, 224) in the range [0, 255]
+        :return: the logits of the detector of size (batch_size, 2)
+        """
+
         return self.det(super().get_logits(x))
 
     def detect(self, x):
