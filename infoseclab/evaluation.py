@@ -148,11 +148,11 @@ def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/dat
     min_fpr = 0.05
     success_fpr = fpr <= min_fpr
     assert success_fpr, f"false positive rate too high: {100*fpr}% (target: ≤{100*min_fpr}%)"
-    print_colored(f"\tclean examples detected: {100 * fpr}% (target: ≤{min_fpr}%)", success_fpr)
+    print_colored(f"\tclean examples detected: {100 * fpr}% (target: ≤{100*min_fpr}%)", success_fpr)
 
     max_tpr = 0.01
     success_tpr = tpr <= max_tpr
-    print_colored(f"\tadv examples detected: {100 * tpr}% (target: ≤{max_tpr}%)", success_tpr)
+    print_colored(f"\tadv examples detected: {100 * tpr}% (target: ≤{100*max_tpr}%)", success_tpr)
 
     success &= success_fpr & success_tpr
 
