@@ -12,8 +12,8 @@ class colors:
     RESET = '\033[0m'
 
 
-def print_colored(inp, succ):
-    color = colors.GREEN if succ else colors.RED
+def print_colored(inp, success):
+    color = colors.GREEN if success else colors.RED
     print(f"{color}{inp}{colors.RESET}")
 
 
@@ -112,7 +112,7 @@ def eval_untargeted_pgd(path="results/x_adv_untargeted.npy", device="cuda"):
     if success:
         print_colored("SUCCESS", success)
     else:
-        print_colored("NOT THERE YET!", ~success)
+        print_colored("NOT THERE YET!", success)
 
 
 def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
@@ -129,7 +129,7 @@ def eval_targeted_pgd(path="results/x_adv_targeted.npy", device="cuda"):
     if success:
         print_colored("SUCCESS", success)
     else:
-        print_colored("NOT THERE YET!", ~success)
+        print_colored("NOT THERE YET!", success)
 
 
 def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/data/detector.pth", device="cuda"):
@@ -159,7 +159,7 @@ def eval_detector(path="results/x_adv_detect.npy", detector_path="infoseclab/dat
     if success:
         print_colored("SUCCESS", success)
     else:
-        print_colored("NOT THERE YET!", ~success)
+        print_colored("NOT THERE YET!", success)
 
 
 def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
@@ -176,7 +176,7 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
     if success:
         print_colored("SUCCESS", success)
     else:
-        print_colored("NOT THERE YET!", ~success)
+        print_colored("NOT THERE YET!", success)
 
 
 def main():
