@@ -1,5 +1,5 @@
 from infoseclab.data import ImageNet, EPSILON, npy_uint8_to_th
-from infoseclab.defenses import ResNet, ResNetDetector, ResNetJPEG
+from infoseclab.defenses import ResNet, ResNetDetector, ResNetJPEG, ResNetRandom
 from infoseclab.utils import batched_func
 import torch
 import numpy as np
@@ -173,6 +173,24 @@ def eval_jpeg_attack(path="results/x_adv_jpeg.npy", device="cuda"):
         print("no adversarial examples found", e)
         return
     acc_clean, acc_adv, acc_target, success = eval_clf(defense_jpeg, x_adv, min_acc=0.9, targeted=True)
+
+    if success:
+        print_colored("SUCCESS", success)
+    else:
+        print_colored("NOT THERE YET!", success)
+
+
+def eval_random_attack(path="results/x_adv_random.npy", device="cuda"):
+    print("=== Evaluating targeted PGD on random defense ===")
+    defense_random = ResNetRandom(device)
+
+    try:
+        x_adv = load_and_validate_images(path)
+    except FileNotFoundError as e:
+        print("no adversarial examples found", e)
+        return
+    acc_clean, acc_adv, acc_target, success = eval_clf(defense_random, x_adv,
+                                                       min_acc=0.9, max_adv_acc=0.05, min_target_acc=0.95, targeted=True)
 
     if success:
         print_colored("SUCCESS", success)
