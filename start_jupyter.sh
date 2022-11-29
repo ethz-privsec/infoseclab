@@ -10,7 +10,7 @@
 
 module load gcc/8.2.0 python_gpu/3.10.4 hdf5/1.10.1 eth_proxy
 hostname -i
-jupyter lab --no-browser \
+.venv/bin/jupyter lab --no-browser \
     --NotebookApp.allow_origin='https://colab.research.google.com' \
     --port=8888 \
     --ip $(hostname -i) \
