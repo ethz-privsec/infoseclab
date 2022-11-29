@@ -5,9 +5,12 @@ python -m virtualenv .venv --system-site-packages
 echo "Activating environment"
 source .venv/bin/activate
 
+echo "Reinstalling Jupyter Lab inside of environment"
+python -m pip install jupyterlab --force reinstall
+
 echo "Installing Jupyter extension to use Colab"
-pip install jupyter_http_over_ws
-jupyter serverextension enable --py jupyter_http_over_ws
+python -m pip install jupyter_http_over_ws
+.venv/bin/jupyter serverextension enable --py jupyter_http_over_ws
 
 echo "Deactivating"
 deactivate
