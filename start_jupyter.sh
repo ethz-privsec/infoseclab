@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -n=4
+#SBATCH -n 4
 #SBATCH --time=4:00:00
 #SBATCH --mem-per-cpu=5G
 #SBATCH --job-name=jupyter
@@ -16,4 +16,4 @@ hostname -i
     --ip "0.0.0.0" \
     --NotebookApp.disable_check_xsrf=True \
     --allow-root \
-    --NotebookApp.port_retries=0
+    --NotebookApp.port_retries=0 \
