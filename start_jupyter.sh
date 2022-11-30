@@ -7,6 +7,7 @@
 #SBATCH --output=jupyter.out
 #SBATCH --error=jupyter.err
 #SBATCH --gpus=1
+#SBATCH --mail-type=BEGIN
 
 module load gcc/8.2.0 python_gpu/3.10.4 hdf5/1.10.1 eth_proxy
 hostname -i
