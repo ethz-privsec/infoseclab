@@ -55,8 +55,10 @@ class PGD(object):
 
             # compute the gradient of the loss with respect to the input pixels
             # and take an update step in the direction of the signed gradient
-            grad, = torch.autograd.grad(loss, [x_adv])
+            loss.backward()
+            grad = x_adv.grad.detach()
 
+            # we don't need any gradients for the rest of the attack
             with torch.no_grad():
                 # take a step in the direction of the gradient to maximize the loss
                 x_adv = x_adv + self.step_size * torch.sign(grad)
