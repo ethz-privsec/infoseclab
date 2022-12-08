@@ -60,7 +60,7 @@ def assert_advs_valid(x_adv):
     """
     linf = torch.max(torch.abs(x_adv - ImageNet.clean_images))
     assert (torch.min(x_adv) >= 0.0) and (torch.max(x_adv) <= 255.0), "invalid pixel value"
-    assert linf <= 1.01*EPSILON, f"linf distance too large: {linf} (target: ≤{EPSILON})"
+    assert linf <= 1.01*EPSILON, f"linf distance too large: {linf} (goal: ≤{EPSILON})"
     return True
 
 
@@ -80,18 +80,18 @@ def eval_clf(clf, x_adv, min_acc=0.99, max_adv_acc=0.01, min_target_acc=0.99, ta
     acc_clean = accuracy(clf, ImageNet.clean_images)
     success_acc = acc_clean >= min_acc
     print_colored(f"\tclean accuracy: {100*acc_clean}%", success_acc)
-    assert success_acc, f"clean accuracy too low: {100*acc_clean}% (target: ≥{100*min_acc}%)"
+    assert success_acc, f"clean accuracy too low: {100*acc_clean}% (goal: ≥{100*min_acc}%)"
 
     acc_adv = accuracy(clf, x_adv)
     success_adv = acc_adv <= max_adv_acc
-    print_colored(f"\tadv accuracy: {100 * acc_adv}% (target: ≤ {100*max_adv_acc}%)", success_adv)
+    print_colored(f"\tadv accuracy: {100 * acc_adv}% (goal: ≤ {100*max_adv_acc}%)", success_adv)
 
     success = success_acc & success_adv
 
     if targeted:
         acc_target = accuracy(clf, x_adv, ImageNet.targets)
         success_target = acc_target >= min_target_acc
-        print_colored(f"\tadv target accuracy: {100*acc_target}% (target: ≥{100*min_target_acc}%)", success_target)
+        print_colored(f"\tadv target accuracy: {100*acc_target}% (goal: ≥{100*min_target_acc}%)", success_target)
         success &= success_target
         return acc_clean, acc_adv, acc_target, success
 
@@ -148,12 +148,12 @@ def eval_detector_attack(path="results/x_adv_detect.npy", detector_path="infosec
 
     min_fpr = 0.05
     success_fpr = fpr <= min_fpr
-    assert success_fpr, f"false positive rate too high: {100*fpr}% (target: ≤{100*min_fpr}%)"
-    print_colored(f"\tclean examples detected: {100 * fpr}% (target: ≤{100*min_fpr}%)", success_fpr)
+    assert success_fpr, f"false positive rate too high: {100*fpr}% (goal: ≤{100*min_fpr}%)"
+    print_colored(f"\tclean examples detected: {100 * fpr}% (goal: ≤{100*min_fpr}%)", success_fpr)
 
     max_tpr = 0.01
     success_tpr = tpr <= max_tpr
-    print_colored(f"\tadv examples detected: {100 * tpr}% (target: ≤{100*max_tpr}%)", success_tpr)
+    print_colored(f"\tadv examples detected: {100 * tpr}% (goal: ≤{100*max_tpr}%)", success_tpr)
 
     success &= success_fpr & success_tpr
 

@@ -11,7 +11,7 @@
 
 module load gcc/8.2.0 python_gpu/3.10.4 hdf5/1.10.1 eth_proxy
 echo "Run the following command on your local machine to enable port forwarding:"
-echo "ssh -N -L 8888:{$hostname -i}:8888 $USER@login.euler.ethz.ch"
+echo "ssh -N -L 8888:$(hostname -i):8888 $USER@login.euler.ethz.ch"
 .venv/bin/jupyter lab --no-browser \
     --NotebookApp.allow_origin='https://colab.research.google.com' \
     --port=8888 \
