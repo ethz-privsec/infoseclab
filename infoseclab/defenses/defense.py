@@ -33,7 +33,7 @@ class ResNet(Defense):
     """
     def __init__(self, device):
         super().__init__(device)
-        self.model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+        self.model = models.resnet50(pretrained=True)
         self.model.eval()
         self.model.to(device)
         # The classifier expects images normalized to 0 mean and 1 std.
